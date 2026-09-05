@@ -50,6 +50,28 @@ Start a worker after the status check succeeds:
 The script intentionally refuses a second Racer process. Logs are written under
 `<WslRacerRoot>/logs/`.
 
+## Docker Desktop mode
+
+`compose.yaml` runs the unchanged Racer binary inside a Docker Desktop container
+and therefore shows its lifecycle and logs in Docker Desktop. Run Compose from
+the WSL distribution that holds Racer and the model:
+
+```bash
+set -a
+. /mnt/c/path/to/tiger-pool.env
+set +a
+export TIGER_GPU_UUID=GPU-REPLACE-WITH-WSL-VISIBLE-RTX-UUID
+export RACER_ROOT=/home/linux-user/tiger-racer
+export RACER_LOG_DIR="$RACER_ROOT/logs"
+export RACER_CACHE_DIR="$RACER_ROOT/model/.racer-cache"
+docker compose -f /mnt/c/path/to/tiger-racer-windows-launcher/compose.yaml up -d
+```
+
+The Compose file uses `NVIDIA_VISIBLE_DEVICES` with one WSL-visible RTX UUID
+instead of `--gpus all`. This is intentional: a Windows-only TCC GPU can make
+an all-GPU WSL container request fail even when the RTX is healthy. The Racer
+API is bound to `127.0.0.1:4000`; it is not exposed to the network.
+
 ## Hardware note
 
 Only GPUs exposed by WSL can be selected. NVIDIA documents WSL CUDA support for

@@ -1,0 +1,36 @@
+name: tiger-racer
+
+services:
+  racer:
+    build:
+      context: ./docker
+    image: tiger-racer-local:13.1
+    container_name: tiger-racer
+    runtime: nvidia
+    restart: unless-stopped
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${TIGER_GPU_UUID:?Set the WSL-visible RTX GPU UUID}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      RACER_TENSORCASH_POOL_TOKEN: ${RACER_TENSORCASH_POOL_TOKEN:?Export the pool token before starting}
+      TIGER_WORKER_NAME: ${TIGER_WORKER_NAME:-docker-windows-launcher}
+      TIGER_GPU_LIST: "0"
+      TIGER_GPU_GROUPS: "0"
+      TIGER_MODEL: /opt/tiger/model/Qwen3-8B-Q8_0-full-v2.gguf
+    volumes:
+      - type: bind
+        source: ${RACER_ROOT:?Set the absolute WSL Racer root}
+        target: /opt/tiger
+        read_only: true
+      - type: bind
+        source: ${RACER_LOG_DIR:?Set a writable WSL log directory}
+        target: /opt/tiger/logs
+      - type: bind
+        source: ${RACER_CACHE_DIR:?Set a writable WSL Racer cache directory}
+        target: /opt/tiger/model/.racer-cache
+      - type: bind
+        source: ./docker/entrypoint.sh
+        target: /opt/launcher/entrypoint.sh
+        read_only: true
+    ports:
+      - "127.0.0.1:4000:4000"
+    command: ["bash", "/opt/launcher/entrypoint.sh"]
