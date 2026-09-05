@@ -1,0 +1,7 @@
+# Do not commit local credentials, models, logs, or extracted Racer files.
+*.env
+secrets/
+logs/
+model/
+bin/
+.racer-cache/
